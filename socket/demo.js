@@ -1,5 +1,5 @@
 module.exports = function (socket) {
-  console.info('in socket: demo')
+  console.info('New connection to socket: demo')
   socket.on('sayhi', (msg) => {
     console.log('Say Hi')
   })
