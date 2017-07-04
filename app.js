@@ -1,11 +1,11 @@
 const express = require('express')
-const app = express()
+const app = express() // 总服务
+const httpServer = require('./service/http')
+const socketServer = require('./service/socket')
 const routes = require('./routes')
 
-// 挂在所有路由到服务
-Object.keys(routes).forEach(root => {
-  app.use(`/${root}`, routes[root])
-})
+app.use('/', httpServer)
+// app.use(socketServer)
 
 console.info('Server starts...')
 

@@ -3,7 +3,7 @@
  * 新增入口后在此添加
  */
 const validRoutes = [
-  'socket'
+  // 'socket'
 ]
 
 module.exports = {
