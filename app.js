@@ -1,6 +1,12 @@
-const express = require('express');
-// var path = require('path');
-const app = express();
-const router = express.Router()
+const express = require('express')
+const app = express()
+const routes = require('./routes')
 
-module.exports = app;
+// 挂在所有路由到服务
+Object.keys(routes).forEach(root => {
+  app.use(`/${root}`, routes[root])
+})
+
+console.info('Server starts...')
+
+module.exports = app

@@ -1,14 +1,10 @@
-const express = require('express');
-const router = express.Router();
+const config = require('./../config')
+const validRoots = config.routes.root
+let routers = {}
 
-// 合法路由入口
-const validRouters = [
-  'socket'
-]
-
-validRouters.forEach(route => {
-  let routePath = `./${route}`
-  router.use(`/${route}`, require(routePath))
+// 注册所有路由文件
+validRoots.forEach(root => {
+  routers[root] = require(`./${root}`)
 })
 
-module.exports = router;
+module.exports = routers
