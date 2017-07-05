@@ -1,16 +1,18 @@
-const express = require('express')
-const app = express()
-const socketServer = require('http').Server(app)
+const http = require('http')
 const sockets = require('./../socket')
-const io = require('socket.io')(socketServer, {
-  // options
-})
+const socketIO = require('socket.io')
 
-console.info('Socket Service starts')
+module.exports = function (socketServer) {
+  console.info('[Service] Socket starts')
+  const io = socketIO(socketServer, {
+    // options
+  })
 
-Object.keys(sockets).forEach(name => {
-  const channel = io.of(name)
-  channel.on('connection', sockets[name])
-})
+  Object.keys(sockets).forEach(name => {
+    const channel = io.of(`/${name}`)
+    channel.on('connection', sockets[name])
+    console.log(`[Socket Channel] : ${name} starts`)
+  })
 
-module.exports = socketServer
+  return socketServer
+}

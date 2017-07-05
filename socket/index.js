@@ -1,12 +1,8 @@
-// const express = require('express')
-// const socketApp = express()
-// const server = require('http').createServer(socketApp)
-// const io = require('socket.io')(server)
+const gomoku = require('./gomoku')
 
-const demoSocket = require('./demo')
-
+// 要启用的socket服务namespace
 const sockets = {
-  demo: demoSocket
+  gomoku
 }
 
 module.exports = sockets

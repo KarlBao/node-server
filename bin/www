@@ -7,7 +7,8 @@
 var app = require('../app');
 var debug = require('debug')('node-server:server');
 var http = require('http');
-
+var mountHttpService = require('./../service/http')
+var mountSocketService = require('./../service/socket')
 /**
  * Get port from environment and store in Express.
  */
@@ -20,6 +21,16 @@ app.set('port', port);
  */
 
 var server = http.createServer(app);
+
+/**
+ * 挂载 HTTP 服务
+ */
+mountHttpService(app)
+
+/**
+ * 挂载 Socket 服务
+ */
+mountSocketService(server)
 
 /**
  * Listen on provided port, on all network interfaces.
