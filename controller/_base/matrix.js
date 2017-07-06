@@ -1,10 +1,17 @@
 class Matrix {
-  constructor (numOfLine, numOfCol, placeholder = '') {
+  constructor (numOfRows, numOfCols, placeholder = {}) {
     this.matrix = []
-    for (let i = 0; i < numOfCol; i++) {
+    let counter = 0
+    for (let i = 0; i < numOfCols; i++) {
       let col = []
-      for (let j = 0; j < numOfLine; j++) {
-        col.push(placeholder)
+      for (let j = 0; j < numOfRows; j++) {
+        let coord = {
+          x: i,
+          y: j
+        }
+        let _placeholder = Object.assign(coord, {id: counter}, placeholder)
+        col.push(_placeholder)
+        counter++
       }
       this.matrix.push(col)
     }
