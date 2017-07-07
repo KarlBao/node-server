@@ -1,4 +1,4 @@
-const Matrix = require('./_base/matrix')
+const Matrix = require('./../_base/matrix')
 
 class ChessBoard extends Matrix {
   putChess (x, y, chess) {

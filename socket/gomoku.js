@@ -1,51 +1,55 @@
-const ChessBoard = require('./../controller/ChessBoard')
+const ChessBoard = require('./../controller/gomoku/ChessBoard')
+const Player = require('./../controller/gomoku/Player')
+const Iterator = require('./../utils/Iterator')
 
 let board = null
-let players = [
-  {
-    role: 1, // 黑子棋手
-    socketId: null
-  },
-  {
-    role: 2, // 白子棋手
-    socketId: null
-  }
-]
+let currentTurn = -1
+let turnIterator = new Iterator([1, 2])
+
 module.exports = function (socket) {
-  console.info(`New socket connection : ${socket.id}`)
-  let role = 0 // 0: 观众, 1: 执黑子, 2: 执白子
-  let player = players.find(player => {
-    return player.socketId === null
-  })
-  if (player) {
-    role = player.role
-    player.socketId = socket.id
+  console.info(`[New Connection] : ${socket.id}`)
+  
+  let player = new Player(socket)
+  player.join() // 进入房间即尝试加入比赛
+  
+  if (player.getAll().some(player => player.role === 1) && player.getAll().some(player => player.role === 2)) {
+    // 1,2号选手都准备就绪
+    if (currentTurn === -1) {
+      currentTurn = 1
+    }
   }
 
   socket.on('init', data => {
     if (board === null) {
       board = new ChessBoard(10, 10, {chess: 0})
     }
-    socket.emit('initRole', role)
+    socket.emit('initRole', player.role)
     socket.emit('initChessBoard', board.matrix)
-    // board.set(1, 1, {id: 1})
+    socket.broadcast.emit('switchTurn', currentTurn)
+    socket.emit('switchTurn', currentTurn)
   })
 
   socket.on('putChess', coord => {
-    if (player.role === 0) {
-      // 观众没有权限
+    if (player.role !== currentTurn || player.chess === null) {
       return
     }
-    let chess = player.role
-    board.putChess(coord.x, coord.y, chess)
-    socket.broadcast.emit('putChess', coord, chess)
+    board.putChess(coord.x, coord.y, player.chess)
+    socket.broadcast.emit('putChess', coord, player.chess)
+
+    currentTurn = turnIterator.next()
+    socket.broadcast.emit('switchTurn', currentTurn)
+    socket.emit('switchTurn', currentTurn)
   })
 
   socket.on('disconnect', () => {
-    let player = players.find(player => {
-      return player.socketId === socket.id
-    })
-    player.socketId = null
-    console.info(`Disconnect : ${socket.id}`)
+    if (player.role !== 0) {
+      // 选手离开重置棋盘
+      board = new ChessBoard(10, 10, {chess: 0})
+      currentTurn = -1
+      socket.broadcast.emit('initChessBoard', board.matrix)
+      socket.broadcast.emit('switchTurn', currentTurn)
+    }
+    player.leave()
+    console.info(`[Disconnect] : ${socket.id}`)
   })
 }
