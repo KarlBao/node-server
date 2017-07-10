@@ -20,13 +20,27 @@ module.exports = function (socket) {
   }
 
   socket.on('init', data => {
+    // 如果当前没有棋局，初始化一个新的棋盘
     if (board === null) {
       board = new ChessBoard(10, 10, {chess: null})
     }
+    // 分配玩家身份
     socket.emit('initRole', player.role)
+    // 初始棋局
     socket.emit('initChessBoard', board.matrix)
+    // 广播当前回合状态
     socket.broadcast.emit('switchTurn', currentTurn)
     socket.emit('switchTurn', currentTurn)
+    // 刷新玩家列表
+    let allPlayers = player.getAll().map(player => {
+      return {
+        socketId: player.socket.id,
+        chess: player.chess,
+        role: player.role
+      }
+    })
+    socket.broadcast.emit('updatePlayerList', allPlayers)
+    socket.emit('updatePlayerList', allPlayers)
   })
 
   socket.on('putChess', coord => {

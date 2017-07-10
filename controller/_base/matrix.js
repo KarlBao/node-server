@@ -18,11 +18,11 @@ class Matrix {
   }
 
   set (x, y, content) {
-    this.matrix[x][y] = content
+    this.matrix[y][x] = content
   }
 
   get (x, y) {
-    return this.matrix[x][y]
+    return this.matrix[y][x]
   }
 }
 
