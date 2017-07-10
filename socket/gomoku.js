@@ -21,7 +21,7 @@ module.exports = function (socket) {
 
   socket.on('init', data => {
     if (board === null) {
-      board = new ChessBoard(10, 10, {chess: 0})
+      board = new ChessBoard(10, 10, {chess: null})
     }
     socket.emit('initRole', player.role)
     socket.emit('initChessBoard', board.matrix)
@@ -44,7 +44,7 @@ module.exports = function (socket) {
   socket.on('disconnect', () => {
     if (player.role !== 0) {
       // 选手离开重置棋盘
-      board = new ChessBoard(10, 10, {chess: 0})
+      board = new ChessBoard(10, 10, {chess: null})
       currentTurn = -1
       socket.broadcast.emit('initChessBoard', board.matrix)
       socket.broadcast.emit('switchTurn', currentTurn)
