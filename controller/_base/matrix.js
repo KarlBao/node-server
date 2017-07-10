@@ -6,8 +6,8 @@ class Matrix {
       let col = []
       for (let j = 0; j < numOfRows; j++) {
         let coord = {
-          x: i,
-          y: j
+          x: j,
+          y: i
         }
         let _placeholder = Object.assign(coord, {id: counter}, placeholder)
         col.push(_placeholder)
