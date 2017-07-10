@@ -5,7 +5,7 @@ const socketIO = require('socket.io')
 module.exports = function (socketServer) {
   console.info('[Service] Socket starts')
   const io = socketIO(socketServer, {
-    // options
+    origins: '*:*'
   })
 
   Object.keys(sockets).forEach(name => {
