@@ -6,6 +6,7 @@ router.use('/:name', function(req, res, next) {
   const name = req.params.name
   console.info('HTTP connection: ')
   console.info(name)
+  res.send(name)
 })
 
 module.exports = router;
