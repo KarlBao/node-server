@@ -22,7 +22,7 @@ module.exports = function (socket) {
   socket.on('init', data => {
     // 如果当前没有棋局，初始化一个新的棋盘
     if (board === null) {
-      board = new ChessBoard(10, 10, {chess: null})
+      board = new ChessBoard()
     }
     // 分配玩家身份
     socket.emit('initRole', player.role)
@@ -58,7 +58,7 @@ module.exports = function (socket) {
   socket.on('disconnect', () => {
     if (player.role !== 0) {
       // 选手离开重置棋盘
-      board = new ChessBoard(10, 10, {chess: null})
+      board = new ChessBoard()
       currentTurn = -1
       socket.broadcast.emit('initChessBoard', board.matrix)
       socket.broadcast.emit('switchTurn', currentTurn)

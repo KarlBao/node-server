@@ -3,17 +3,17 @@ class Matrix {
     this.matrix = []
     let counter = 0
     for (let i = 0; i < numOfCols; i++) {
-      let col = []
+      let row = []
       for (let j = 0; j < numOfRows; j++) {
         let coord = {
           x: j,
           y: i
         }
         let _placeholder = Object.assign(coord, {id: counter}, placeholder)
-        col.push(_placeholder)
+        row.push(_placeholder)
         counter++
       }
-      this.matrix.push(col)
+      this.matrix.push(row)
     }
   }
 
