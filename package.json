@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "dev": "node ./bin/node-server",
+    "start": "pm2 start ./bin/node-server",
+    "stop": "pm2 stop node-server"
   },
   "dependencies": {
     "body-parser": "~1.17.1",
