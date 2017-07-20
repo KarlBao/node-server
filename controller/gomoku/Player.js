@@ -1,17 +1,21 @@
-let players = []
+let players = {}
 
 class Player {
-  constructor (socket) {
+  constructor (socket, roomId = 0) {
     this.socket = socket
     this.name = ''
     this.chess = null
+    this.roomId = roomId
     this.enter()
   }
 
   // 进入房间
   enter () {
     this.role = 0 // 默认观众身份
-    players.push(this)
+    if (!players[this.roomId]) {
+      players[this.roomId] = []
+    }
+    players[this.roomId].push(this)
   }
 
   // 加入比赛
@@ -31,14 +35,17 @@ class Player {
 
   // 离开房间
   leave () {
-    let index = players.indexOf(this)
+    let index = players[this.roomId].indexOf(this)
     if (index > -1) {
-      players.splice(index, 1)
+      players[this.roomId].splice(index, 1)
+    }
+    if (players[this.roomId].length === 0) {
+      delete players[this.roomId]
     }
   }
 
   getAll () {
-    return players
+    return players[this.roomId]
   }
 }
 
