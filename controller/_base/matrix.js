@@ -1,6 +1,8 @@
 class Matrix {
   constructor (numOfRows, numOfCols, placeholder = {}) {
     this.matrix = []
+    this.numOfCols = numOfCols
+    this.numOfRows = numOfRows
     let counter = 0
     for (let i = 0; i < numOfCols; i++) {
       let row = []

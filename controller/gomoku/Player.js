@@ -3,6 +3,7 @@ let players = []
 class Player {
   constructor (socket) {
     this.socket = socket
+    this.name = ''
     this.chess = null
     this.enter()
   }
@@ -14,7 +15,7 @@ class Player {
   }
 
   // 加入比赛
-  join () {
+  join (name = 'Unknown') {
     if (!players.some(player => player.role === 1)) {
       this.role = 1
       this.chess = 1
@@ -25,6 +26,7 @@ class Player {
       this.role = 0
       this.chess = null
     }
+    this.name = name
   }
 
   // 离开房间

@@ -10,37 +10,67 @@ module.exports = function (socket) {
   console.info(`[New Connection] : ${socket.id}`)
   
   let player = new Player(socket)
-  player.join() // 进入房间即尝试加入比赛
   
-  if (player.getAll().some(player => player.role === 1) && player.getAll().some(player => player.role === 2)) {
-    // 1,2号选手都准备就绪
-    if (currentTurn === -1) {
-      currentTurn = 1
-    }
+  // 广播当前回合状态
+  function broadcastTurn () {
+    socket.emit('setTurn', currentTurn)
+    socket.broadcast.emit('setTurn', currentTurn)
   }
 
-  socket.on('init', data => {
-    // 如果当前没有棋局，初始化一个新的棋盘
-    if (board === null) {
-      board = new ChessBoard()
-    }
-    // 分配玩家身份
-    socket.emit('initRole', player.role)
-    // 初始棋局
-    socket.emit('initChessBoard', board.matrix)
-    // 广播当前回合状态
-    socket.broadcast.emit('switchTurn', currentTurn)
-    socket.emit('switchTurn', currentTurn)
-    // 刷新玩家列表
+  // 刷新玩家列表
+  function updatePlayerList () {
     let allPlayers = player.getAll().map(player => {
       return {
         socketId: player.socket.id,
+        name: player.name,
         chess: player.chess,
         role: player.role
       }
     })
     socket.broadcast.emit('updatePlayerList', allPlayers)
     socket.emit('updatePlayerList', allPlayers)
+  }
+
+  // 重置棋盘
+  function resetChessBoard () {
+    board = new ChessBoard()
+    socket.emit('initChessBoard', board.matrix)
+    socket.broadcast.emit('initChessBoard', board.matrix)
+  }
+  /**
+   * 进入房间
+   */
+  socket.on('enter', () => {
+    // 如果当前没有棋局，初始化一个新的棋盘
+    if (board === null) {
+      board = new ChessBoard()
+    }
+
+    // 分配玩家初始信息
+    socket.emit('setSocket', player.socket.id)
+
+    // 广播当前棋盘
+    socket.emit('initChessBoard', board.matrix)
+
+    // 更新玩家列表
+    updatePlayerList()
+  })
+
+  /**
+   * 加入棋局
+   */
+  socket.on('join', name => {
+    player.join(name)
+    updatePlayerList()
+
+    if (player.getAll().some(player => player.role === 1) && player.getAll().some(player => player.role === 2)) {
+      // 若1,2号选手都准备就绪，则开始比赛
+      if (currentTurn === -1) {
+        currentTurn = 1
+        turnIterator = new Iterator([1,2]) // 重置iterator
+        broadcastTurn()
+      }
+    }
   })
 
   socket.on('putChess', coord => {
@@ -50,20 +80,24 @@ module.exports = function (socket) {
     board.putChess(coord.x, coord.y, player.chess)
     socket.broadcast.emit('putChess', coord, player.chess)
 
-    currentTurn = turnIterator.next()
-    socket.broadcast.emit('switchTurn', currentTurn)
-    socket.emit('switchTurn', currentTurn)
+    if (board.checkWin(coord.x, coord.y) === true) {
+      socket.emit('getWinner', player.role)
+      socket.broadcast.emit('getWinner', player.role)
+    } else {
+      currentTurn = turnIterator.next()
+    }
+    broadcastTurn()
   })
 
   socket.on('disconnect', () => {
     if (player.role !== 0) {
       // 选手离开重置棋盘
-      board = new ChessBoard()
+      resetChessBoard()
       currentTurn = -1
-      socket.broadcast.emit('initChessBoard', board.matrix)
-      socket.broadcast.emit('switchTurn', currentTurn)
+      broadcastTurn()
     }
     player.leave()
+    updatePlayerList()
     console.info(`[Disconnect] : ${socket.id}`)
   })
 }
