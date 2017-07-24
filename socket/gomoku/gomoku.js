@@ -1,26 +1,24 @@
 const ChessBoard = require('./../../controller/gomoku/ChessBoard')
-const Player = require('./../../controller/gomoku/Player')
 const Iterator = require('./../../utils/Iterator')
+const Game = require('./../_base/game')
 
-class Gomoku {
-  constructor (roomId = 0) {
-    this.roomId = roomId
+class Gomoku extends Game {
+  constructor (channel, roomId) {
+    super(channel, roomId)
     this.board = null
     this.currentTurn = -1
     this.turnIterator = new Iterator([1, 2])
   }
 
-  enter (socket, channel) {
-    let player = new Player(socket, this.roomId)
-  
+  onEnter (socket, player) {
     // 广播当前回合状态
-    function broadcastTurn () {
-      channel.to(this.roomId).emit('setTurn', this.currentTurn)
+    const broadcastTurn = () => {
+      this.room.emit('setTurn', this.currentTurn)
     }
 
     // 刷新玩家列表
-    function updatePlayerList () {
-      let allPlayers = player.getAll().map(player => {
+    const updatePlayerList = () => {
+      let allPlayers = this.room.players.map(player => {
         return {
           socketId: player.socket.id,
           name: player.name,
@@ -28,14 +26,16 @@ class Gomoku {
           role: player.role
         }
       })
-      channel.to(this.roomId).emit('updatePlayerList', allPlayers)
+      console.info(allPlayers)
+      this.room.emit('updatePlayerList', allPlayers)
     }
 
     // 重置棋盘
-    function resetChessBoard () {
+    const resetChessBoard = () => {
       this.board = new ChessBoard()
-      channel.to(this.roomId).emit('initChessBoard', this.board.matrix)
+      this.room.emit('initChessBoard', this.board.matrix)
     }
+
     /**
      * 初始化
      */
@@ -77,17 +77,17 @@ class Gomoku {
         return
       }
       this.board.putChess(coord.x, coord.y, player.chess)
-      channel.to(this.roomId).emit('putChess', coord, player.chess)
+      this.room.emit('putChess', coord, player.chess)
 
       if (this.board.checkWin(coord.x, coord.y) === true) {
-        channel.to(this.roomId).emit('getWinner', player.role)
+        this.room.emit('getWinner', player.role)
       } else {
         this.currentTurn = this.turnIterator.next()
       }
       broadcastTurn()
     })
 
-    socket.on('disconnect', () => {
+    socket.on('leave', () => {
       if (player.role !== 0) {
         // 选手离开重置棋盘
         resetChessBoard()
@@ -96,7 +96,6 @@ class Gomoku {
       }
       player.leave()
       updatePlayerList()
-      console.info(`[Disconnect] : ${socket.id}`)
     })
   }
 }

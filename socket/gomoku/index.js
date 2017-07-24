@@ -1,18 +1,18 @@
 const Gomoku = require('./gomoku')
-let rooms = []
+const Room = require('./../_base/room')
+const Player = require('./../../controller/gomoku/Player')
 
-module.exports = function (socket, channel) {
-  console.info(`[New Connection] : ${socket.id} connect to gomoku`)
+module.exports = function (channel, socket) {
+  let room = null
+  let player = null
 
-  // 进入房间
-  socket.on('enter', (roomId = 0) => {
-    if (!rooms[roomId]) {
-      rooms[roomId] = {
-        game: new Gomoku(roomId)
-      }
+  socket.on('enter', (roomId) => {
+    if (!Room.get(roomId)) {
+      Room.create(channel, new Gomoku(channel, roomId), roomId)
     }
-
-    const game = rooms[roomId].game
-    game.enter(socket, channel)
+    room = Room.get(roomId)
+    player = new Player(socket)
+    player.enter(room)
+    room.enter(socket)
   })
 }
