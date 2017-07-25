@@ -30,3 +30,5 @@ class Game {
    */
   onEnter (room, socket, player) {}
 }
+
+module.exports = Game

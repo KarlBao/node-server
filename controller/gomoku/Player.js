@@ -1,6 +1,5 @@
 const path = require('path')
 const Room = require(path.resolve(__dirname, 'socket/_base/room'))
-let players = {}
 
 class Player {
   constructor (socket) {

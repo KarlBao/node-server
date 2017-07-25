@@ -18,7 +18,7 @@ class Gomoku extends Game {
 
     // 刷新玩家列表
     const updatePlayerList = () => {
-      let allPlayers = this.room.players.map(player => {
+      let allPlayers = Object.keys(this.room.getPlayers()).map(player => {
         return {
           socketId: player.socket.id,
           name: player.name,

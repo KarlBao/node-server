@@ -1,3 +1,4 @@
+const RoomManager = require('./room-manager')
 /**
  * 房间统一管理
  * key: roomId
@@ -6,28 +7,6 @@
  * RoomInfo.game: {Game} 该房间的游戏类实例，每个房间有且仅有一个游戏
  */
 let rooms = {}
-
-class RoomManager {
-  constructor (room = null, game = null, players = {}) {
-    this.room = room
-    this.game = game
-    this.players = players
-
-    if (game.bindRoom) {
-      game.bindRoom(room)
-    }
-  }
-
-  addPlayer (socket, player) {
-    this.players[socket] = player
-  }
-
-  removePlayer (socket) {
-    if(this.players[socket]) {
-      delete this.players[socket]
-    }
-  }
-}
 
 /**
  * 房间类
@@ -47,8 +26,7 @@ class Room {
   constructor (channel, roomId) {
     this.roomId = roomId
     this.channel = channel
-    // 房间内玩家管理
-    this.players = {}
+    console.info(`Creating new room ${roomId}`)
   }
 
   /**
@@ -71,10 +49,6 @@ class Room {
 
     console.info(`[Room] : ${socket.id} enters room ${this.roomId}`)
 
-    socket.on('disconnect', () => {
-      this.leave(socket)
-    })
-
     // 调用钩子
     roomManager.game.onEnter(socket, player)
     this.afterEnter(socket)
@@ -82,13 +56,13 @@ class Room {
 
   /**
    * 离开房间
+   * 当有玩家离开时自动调用
    * @param {Socket} socket
    * @return {Boolean} 
    * @memberof Room
    */
   leave (socket) {
-    const players = this.getPlayers()
-    const player = players[socket.id]
+    const player = getPlayers().find(player => player.socket.id === socket.id)
     const roomManager = rooms[this.roomId]
 
     if (player) {
@@ -99,7 +73,7 @@ class Room {
       console.info(`[Room] : ${socket.id} leaves room ${this.roomId}`)
 
       // 房间内没有玩家后自动销毁
-      if (Object.keys(this.getPlayers()).length === 0) {
+      if (this.getPlayers().length === 0) {
         delete rooms[this.roomId]
         console.info(`[Room] : room ${this.roomId} has no players, so it's removed from the list of rooms.`)
       }
@@ -147,7 +121,8 @@ class Room {
    * @memberof Room
    */
   getPlayers () {
-    return rooms[this.roomId].players
+    const obj = rooms[this.roomId].players
+    return obj.map(socketId => obj[socketId]) || []
   }
 
   /**
@@ -194,6 +169,5 @@ const getRoom = function (roomId) {
 
 module.exports = {
   get: getRoom,
-  create: createRoom,
-  enter: enterRoom
+  create: createRoom
 }
