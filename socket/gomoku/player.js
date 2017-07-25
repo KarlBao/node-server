@@ -23,3 +23,5 @@ class GomokuPlayer extends BasePlayer {
     this.name = name
   }
 }
+
+module.exports = GomokuPlayer

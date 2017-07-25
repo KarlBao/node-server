@@ -11,7 +11,7 @@ module.exports = function (socketServer) {
   Object.keys(sockets).forEach(name => {
     const channel = io.of(`/${name}`)
     channel.on('connection', socket => {
-      sockets[name](socket, channel)
+      sockets[name](channel, socket)
     })
     console.log(`[Socket] Channel '${name}' is ready`)
   })

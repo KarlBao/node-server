@@ -15,8 +15,8 @@ class Player {
    */
   enter (room) {
     this.room = room
-    room.enter(socket, this)
-    socket.on('disconnect', () => {
+    room.enter(this.socket, this)
+    this.socket.on('disconnect', () => {
       this.leave()
     })
   }

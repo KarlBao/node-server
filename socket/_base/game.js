@@ -6,11 +6,9 @@
 class Game {
   /**
    * Creates an instance of Game.
-   * @param {Channel} channel 
    * @memberof Game
    */
-  constructor (channel) {
-    this.channel = channel
+  constructor () {
     this.room = null
   }
 
@@ -24,11 +22,17 @@ class Game {
 
   /**
    * 钩子函数，有玩家进入房间后调用
-   * @param {Room} room 进入的房间
    * @param {Socket} socket
    * @param {Player} player
    */
-  onEnter (room, socket, player) {}
+  onEnter (socket, player) {}
+
+  /**
+   * 钩子函数，有玩家离开房间前调用
+   * @param {Socket} socket
+   * @param {Player} player
+   */
+  onLeave (socket, player) {}
 }
 
 module.exports = Game

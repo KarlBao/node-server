@@ -9,13 +9,13 @@ class RoomManager {
     }
   }
 
-  addPlayer (socket, player) {
-    this.players[socket] = player
+  addPlayer (socketId, player) {
+    this.players[socketId] = player
   }
 
-  removePlayer (socket) {
-    if(this.players[socket]) {
-      delete this.players[socket]
+  removePlayer (socketId) {
+    if(this.players[socketId]) {
+      delete this.players[socketId]
     }
   }
 }

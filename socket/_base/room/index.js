@@ -3,8 +3,6 @@ const RoomManager = require('./room-manager')
  * 房间统一管理
  * key: roomId
  * value: {RoomManager}
- * RoomInfo.room: {Room} 房间类实例
- * RoomInfo.game: {Game} 该房间的游戏类实例，每个房间有且仅有一个游戏
  */
 let rooms = {}
 
@@ -26,7 +24,7 @@ class Room {
   constructor (channel, roomId) {
     this.roomId = roomId
     this.channel = channel
-    console.info(`Creating new room ${roomId}`)
+    console.info(`[Room] : creating new room ${roomId}`)
   }
 
   /**
@@ -45,7 +43,7 @@ class Room {
 
     socket.join(this.roomId)
 
-    roomManager.addPlayer(player)
+    roomManager.addPlayer(socket.id, player)
 
     console.info(`[Room] : ${socket.id} enters room ${this.roomId}`)
 
@@ -62,13 +60,13 @@ class Room {
    * @memberof Room
    */
   leave (socket) {
-    const player = getPlayers().find(player => player.socket.id === socket.id)
+    const player = this.getPlayers().find(player => player.socket.id === socket.id)
     const roomManager = rooms[this.roomId]
 
     if (player) {
       // 调用钩子
       this.beforeLeave(socket)
-
+      roomManager.game.onLeave(socket, player)
       roomManager.removePlayer(socket.id)
       console.info(`[Room] : ${socket.id} leaves room ${this.roomId}`)
 
@@ -122,7 +120,7 @@ class Room {
    */
   getPlayers () {
     const obj = rooms[this.roomId].players
-    return obj.map(socketId => obj[socketId]) || []
+    return Object.keys(obj).map(socketId => obj[socketId])
   }
 
   /**

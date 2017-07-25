@@ -3,39 +3,14 @@ const Iterator = require('./../../utils/Iterator')
 const Game = require('./../_base/game')
 
 class Gomoku extends Game {
-  constructor (channel, roomId) {
-    super(channel, roomId)
+  constructor () {
+    super()
     this.board = null
     this.currentTurn = -1
     this.turnIterator = new Iterator([1, 2])
   }
 
   onEnter (socket, player) {
-    // 广播当前回合状态
-    const broadcastTurn = () => {
-      this.room.emit('setTurn', this.currentTurn)
-    }
-
-    // 刷新玩家列表
-    const updatePlayerList = () => {
-      let allPlayers = Object.keys(this.room.getPlayers()).map(player => {
-        return {
-          socketId: player.socket.id,
-          name: player.name,
-          chess: player.chess,
-          role: player.role
-        }
-      })
-      console.info(allPlayers)
-      this.room.emit('updatePlayerList', allPlayers)
-    }
-
-    // 重置棋盘
-    const resetChessBoard = () => {
-      this.board = new ChessBoard()
-      this.room.emit('initChessBoard', this.board.matrix)
-    }
-
     /**
      * 初始化
      */
@@ -52,7 +27,7 @@ class Gomoku extends Game {
       socket.emit('initChessBoard', this.board.matrix)
 
       // 更新玩家列表
-      updatePlayerList()
+      this._updatePlayerList()
     })
 
     /**
@@ -60,14 +35,14 @@ class Gomoku extends Game {
      */
     socket.on('join', name => {
       player.join(name)
-      updatePlayerList()
+      this._updatePlayerList()
 
-      if (player.getAll().some(player => player.role === 1) && player.getAll().some(player => player.role === 2)) {
+      if (this.room.getPlayers().some(player => player.role === 1) && this.room.getPlayers().some(player => player.role === 2)) {
         // 若1,2号选手都准备就绪，则开始比赛
         if (this.currentTurn === -1) {
           this.currentTurn = 1
           this.turnIterator = new Iterator([1,2]) // 重置iterator
-          broadcastTurn()
+          this.room.emit('setTurn', this.currentTurn)
         }
       }
     })
@@ -84,19 +59,32 @@ class Gomoku extends Game {
       } else {
         this.currentTurn = this.turnIterator.next()
       }
-      broadcastTurn()
+      this.room.emit('setTurn', this.currentTurn)
     })
+  }
 
-    socket.on('leave', () => {
-      if (player.role !== 0) {
-        // 选手离开重置棋盘
-        resetChessBoard()
-        this.currentTurn = -1
-        broadcastTurn()
+  onLeave (socket, player) {
+    if (player.role !== 0) {
+      // 选手离开重置棋盘
+      this.board = new ChessBoard()
+      this.room.emit('initChessBoard', this.board.matrix)
+      this.currentTurn = -1
+      this.room.emit('setTurn', this.currentTurn)
+    }
+    this._updatePlayerList()
+  }
+
+  // 私有方法
+  _updatePlayerList () {
+    let allPlayers = this.room.getPlayers().map(player => {
+      return {
+        socketId: player.socket.id,
+        name: player.name,
+        chess: player.chess,
+        role: player.role
       }
-      player.leave()
-      updatePlayerList()
     })
+    this.room.emit('updatePlayerList', allPlayers)
   }
 }
 
