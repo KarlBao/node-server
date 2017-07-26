@@ -1,10 +1,9 @@
-const RoomManager = require('./room-manager')
 /**
  * 房间统一管理
  * key: roomId
  * value: {RoomManager}
  */
-let rooms = {}
+const roomManager = require('./room-manager')
 
 /**
  * 房间类
@@ -24,7 +23,6 @@ class Room {
   constructor (channel, roomId) {
     this.roomId = roomId
     this.channel = channel
-    console.info(`[Room] : creating new room ${roomId}`)
   }
 
   /**
@@ -37,18 +35,15 @@ class Room {
   enter (socket, player, opts = {}) {
     const defaultOpts = {}
     const options = Object.assign(defaultOpts, opts)
-    const roomManager = rooms[this.roomId]
     // 调用钩子
     this.beforeEnter(socket)
 
     socket.join(this.roomId)
 
-    roomManager.addPlayer(socket.id, player)
-
-    console.info(`[Room] : ${socket.id} enters room ${this.roomId}`)
+    roomManager.addPlayer(this.channel.name, this.roomId, socket.id, player)
 
     // 调用钩子
-    roomManager.game.onEnter(socket, player)
+    this.getGame().onEnter(socket, player)
     this.afterEnter(socket)
   }
 
@@ -61,27 +56,19 @@ class Room {
    */
   leave (socket) {
     const player = this.getPlayers().find(player => player.socket.id === socket.id)
-    const roomManager = rooms[this.roomId]
 
     if (player) {
       // 调用钩子
       this.beforeLeave(socket)
-      roomManager.game.onLeave(socket, player)
-      roomManager.removePlayer(socket.id)
-      console.info(`[Room] : ${socket.id} leaves room ${this.roomId}`)
 
-      // 房间内没有玩家后自动销毁
-      if (this.getPlayers().length === 0) {
-        delete rooms[this.roomId]
-        console.info(`[Room] : room ${this.roomId} has no players, so it's removed from the list of rooms.`)
-      }
+      this.getGame().onLeave(socket, player)
+      roomManager.removePlayer(this.channel.name, this.roomId, socket.id)
 
       // 调用钩子
       this.afterLeave(socket)
 
       return true
     } else {
-      console.info(`[Room] : failed to leave, because room ${this.roomId} does not exist.`)
       return false
     }
   }
@@ -111,16 +98,16 @@ class Room {
    * @memberof Room
    */
   getGame () {
-    return rooms[this.roomId].game
+    return roomManager.getRoom(this.channel.name, this.roomId).game
   }
-  
+
   /**
    * 获得房间内的所有玩家
    * @memberof Room
    */
   getPlayers () {
-    const obj = rooms[this.roomId].players
-    return Object.keys(obj).map(socketId => obj[socketId])
+    const obj = roomManager.getRoom(this.channel.name, this.roomId).players
+    return Object.keys(obj).map(socketId => obj[socketId]) || []
   }
 
   /**
@@ -141,11 +128,9 @@ class Room {
  * @return {Room | false} 房间实例，若房间已存在则返回 false
  */
 const createRoom = function (channel, game = null, roomId = 0) {
-  if (!rooms[roomId]) {
+  if (!roomManager.getRoom(channel.name, roomId)) {
     const room = new Room(channel, roomId)
-    const players = []
-    const roomInfo = new RoomManager(room, game, players)
-    rooms[roomId] = roomInfo
+    roomManager.addRoom(channel.name, room, game)
     return room
   } else {
     return false
@@ -157,12 +142,8 @@ const createRoom = function (channel, game = null, roomId = 0) {
  * @param {String | Number} roomId
  * @return {Room | false} 
  */
-const getRoom = function (roomId) {
-  if (rooms[roomId]) {
-    return rooms[roomId].room
-  } else {
-    return false
-  }
+const getRoom = function (channel, roomId) {
+  return roomManager.getRoom(channel.name, roomId).room
 }
 
 module.exports = {

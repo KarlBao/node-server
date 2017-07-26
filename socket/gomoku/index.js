@@ -5,12 +5,12 @@ const Player = require('./player')
 module.exports = function (channel, socket) {
   let room = null
   let player = null
-  socket.on('enter', (roomId = 0) => {
+  socket.on('enter', (roomId = null) => {
     roomId = Math.floor(Math.random() * 3)
-    if (!Room.get(roomId)) {
+    if (!Room.get(channel, roomId)) {
       Room.create(channel, new Gomoku(), roomId)
     }
-    room = Room.get(roomId)
+    room = Room.get(channel, roomId)
     player = new Player(socket)
     player.enter(room)
   })

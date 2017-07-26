@@ -1,12 +1,10 @@
 const express = require('express')
 const router = express.Router()
+const roomManager = require('./../socket/_base/room/room-manager')
 
-/* GET users listing. */
-router.use('/:name', function(req, res, next) {
-  const name = req.params.name
-  console.info('HTTP connection: ')
-  console.info(name)
-  res.send(name)
+router.get('/:channel/rooms', (req, res, next) => {
+  const rooms = roomManager.rooms
+  res.send(Object.keys(rooms))
 })
 
 module.exports = router;
