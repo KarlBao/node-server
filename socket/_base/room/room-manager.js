@@ -23,6 +23,16 @@ class RoomInfo {
 class RoomManager {
   constructor () {
     this.rooms = {}
+    this.nextRoomId = {} // 新建房间时自动分配的id
+  }
+
+  getNextRoomId (channelName) {
+    if (!this.nextRoomId[channelName]) {
+      this.nextRoomId[channelName] = 1
+    }
+    const roomId = this.nextRoomId[channelName]
+    this.nextRoomId[channelName]++
+    return roomId
   }
 
   addRoom (channelName, room, game) {

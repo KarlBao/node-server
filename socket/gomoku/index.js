@@ -6,7 +6,6 @@ module.exports = function (channel, socket) {
   let room = null
   let player = null
   socket.on('enter', (roomId = null) => {
-    roomId = Math.floor(Math.random() * 3)
     if (!Room.get(channel, roomId)) {
       Room.create(channel, new Gomoku(), roomId)
     }

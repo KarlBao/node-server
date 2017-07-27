@@ -13,9 +13,8 @@ class ChessBoard extends Matrix {
 
   checkWin (x, y) {
     const chess = this.get(x, y).chess
-    if (chess === null) {
-      return false
-    }
+    const lengthToWin = 5
+    if (chess === null) { return false }
 
     const getContinuousLength = (xOffset, yOffset) => {
       let cx = x + xOffset
@@ -29,10 +28,10 @@ class ChessBoard extends Matrix {
       return continuousLength
     }
 
-    if (getContinuousLength(-1, -1) + getContinuousLength(1, 1) + 1 >= 5
-      || getContinuousLength(-1, 0) + getContinuousLength(1, 0) + 1 >= 5
-      || getContinuousLength(-1, 1) + getContinuousLength(1, -1) + 1 >= 5
-      || getContinuousLength(0, -1) + getContinuousLength(0, 1) + 1 >= 5
+    if (getContinuousLength(-1, -1) + getContinuousLength(1, 1) + 1 >= lengthToWin
+      || getContinuousLength(-1, 0) + getContinuousLength(1, 0) + 1 >= lengthToWin
+      || getContinuousLength(-1, 1) + getContinuousLength(1, -1) + 1 >= lengthToWin
+      || getContinuousLength(0, -1) + getContinuousLength(0, 1) + 1 >= lengthToWin
     ) {
       return true
     }
